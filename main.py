@@ -23,28 +23,32 @@ if not token:
 async def hello(ctx):
     await ctx.send(f"hello, {ctx.author.mention}")
 @bot.command()
-async def weather(ctx):
-    API_KEY = "e8f8aa082737265ec61c8e7b296be0ac"
-    def get_weather():
-        city = entry.get()
+async def weather(ctx, *, city: str):
+    API_KEY = os.getenv("OPENWEATHER_API_KEY") or "e8f8aa082737265ec61c8e7b296be0ac"
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=vi"
+    try:
+        resp = requests.get(url, timeout=10)
+        data = resp.json()
+    except Exception:
+        await ctx.send("Lỗi khi kết nối dịch vụ thời tiết.")
+        return
 
-        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=vi"
-        response = requests.get(url)
-        data = response.json()
+    if resp.status_code != 200 or data.get("cod") != 200:
+        await ctx.send("Không tìm thấy thành phố rồi… baka!")
+        return
 
-        if data["cod"] != 200:
-            result(text="Không tìm thấy thành phố rồi… baka!")
-        else:
-            tempC = data["main"]["temp"]
-            tempK = tempC + 273
-            tempF = tempC * 2 + 30
-            humidity = data["main"]["humidity"]
-            desc = data["weather"][0]["description"]
-        result = (
-            f" Thành phố: {city}\n"
-            f" Nhiệt độ: {tempC} °C {tempK}°K {tempF} °F \n"
-            f" Độ ẩm: {humidity} %\n"
-            f" Thời tiết: {desc}"
-        )
+    tempC = data["main"]["temp"]
+    tempK = tempC + 273.15
+    tempF = tempC * 9/5 + 32
+    humidity = data["main"]["humidity"]
+    desc = data["weather"][0]["description"]
+
+    result = (
+        f"Thành phố: {city}\n"
+        f"Nhiệt độ: {tempC} °C / {tempK:.2f} K / {tempF:.2f} °F\n"
+        f"Độ ẩm: {humidity}%\n"
+        f"Thời tiết: {desc}"
+    )
+    await ctx.send(result)
         
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
