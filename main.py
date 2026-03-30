@@ -38,7 +38,7 @@ async def hello(ctx):
     await ctx.send(f"hello, {ctx.author.mention}")
 @bot.command()
 async def weather(ctx, *, city: str):
-    API_KEY = os.getenv("OPENWEATHER_API_KEY") or "e8f8aa082737265ec61c8e7b296be0ac"
+    API_KEY = os.getenv("OPENWEATHER_API_KEY") 
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=vi"
     try:
         resp = requests.get(url, timeout=10)
